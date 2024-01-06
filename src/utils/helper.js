@@ -1,17 +1,46 @@
-// This function will return an array of indexes of empty square(tiles)
-export function randomIndex(boardState) {
-	const emptyStateIndex = [];
-	boardState.forEach((state, i) => {
-		if (state === 'empty') emptyStateIndex.push(i);
-	});
-	const index = Math.floor(Math.random() * emptyStateIndex.length);
+import { checkForWinner } from './checkForWinner';
 
-	return emptyStateIndex[index];
+// This function will return an index for computer move
+export function makeComputerMove(board, marker) {
+	const emptyIndices = getEmptyIndex(board);
+	const computerMarker = marker;
+
+	// Priority wining move
+	for (const index of emptyIndices) {
+		const simulatedBoard = [...board];
+		simulatedBoard[index] = computerMarker;
+		if (checkForWinner(simulatedBoard, computerMarker)) {
+			return index;
+		}
+	}
+
+	// Block opponent's move
+	const opponentMarker = computerMarker === 'x' ? 'o' : 'x';
+	for (const index of emptyIndices) {
+		const simulatedBoard = [...board];
+		simulatedBoard[index] = opponentMarker;
+		if (checkForWinner(simulatedBoard, opponentMarker)) {
+			console.log(index);
+			return index;
+		}
+	}
+
+	// Take any random index from remaining empty position
+	return getRandomIndex(emptyIndices);
 }
 
-export async function getQuote() {
-	const data = await fetch('https://api.adviceslip.com/advice');
-	const quote = await data.json();
+// Return an array of empty indices from board
+function getEmptyIndex(board) {
+	const emptyStateIndex = [];
+	board.forEach((state, i) => {
+		if (state === '') emptyStateIndex.push(i);
+	});
 
-	return quote.slip.advice;
+	return emptyStateIndex;
+}
+
+// Return random index of available empty space from emptyIndex array
+function getRandomIndex(emptyIndexArray) {
+	const index = Math.floor(Math.random() * emptyIndexArray.length);
+	return emptyIndexArray[index];
 }

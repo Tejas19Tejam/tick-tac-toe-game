@@ -1,19 +1,27 @@
 import PlayerIcon from '../../ui/PlayerIcon';
 
-function Square({ getCurrentBoxIndex, option, isPcTurn }) {
-	const selectedTile = option !== 'empty';
+function Square({ getCurrentBoxIndex, option, isPcTurn, winner }) {
+	const selectedTile = option !== '';
+	const gameComplete = winner !== '';
+
+	if (selectedTile)
+		return (
+			<button className='square' disabled>
+				{selectedTile ? (
+					<PlayerIcon player={option} type='extraBold' />
+				) : (
+					' '
+				)}
+			</button>
+		);
 
 	return (
 		<button
 			className='square'
 			onClick={getCurrentBoxIndex}
-			disabled={selectedTile || isPcTurn}
+			disabled={gameComplete || isPcTurn}
 		>
-			{selectedTile ? (
-				<PlayerIcon player={option} type='extraBold' />
-			) : (
-				' '
-			)}
+			''
 		</button>
 	);
 }

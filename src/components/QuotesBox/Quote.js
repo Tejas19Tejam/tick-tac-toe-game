@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
-import { getQuote } from '../../utils/helper';
+import { getQuote } from '../../api/getQuotes';
 
 const initialQuote =
 	'The most important thing is the thing most easily forgotten.';
