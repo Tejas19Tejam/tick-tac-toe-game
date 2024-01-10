@@ -1,5 +1,8 @@
 import './index.css';
 
+import { useState } from 'react';
+import { useGameState } from './context/GameStateProvider';
+
 import MobileView from './ui/MobileView';
 import GameStartScreen from './components/GameStart/GameStartScreen';
 import QuotesBox from './components/QuotesBox/QuotesBox';
@@ -7,22 +10,24 @@ import Board from './components/Board/Board';
 import GameLogo from './ui/GameLogo';
 import PlayerSelector from './components/GameStart/PlayerSelector';
 import GameModeSelector from './components/GameStart/GameModeSelector';
-import { useState } from 'react';
 
 function App() {
-	const [isGameStarted, setIsGameStarted] = useState(false);
 	const [humanSelectedOption, setHumanSelectedOption] = useState('x');
+	const { gameStatus, dispatch } = useGameState();
 
 	function handleStartGame() {
-		setIsGameStarted(true);
+		dispatch({
+			type: 'game/start',
+			payload: { option: humanSelectedOption, status: 'gameStart' },
+		});
 	}
 
 	return (
 		<section className='main-container'>
 			<QuotesBox />
 			<MobileView>
-				{isGameStarted ? (
-					<Board humanTurn={humanSelectedOption} />
+				{gameStatus === 'gameStart' ? (
+					<Board />
 				) : (
 					<GameStartScreen>
 						<GameLogo />

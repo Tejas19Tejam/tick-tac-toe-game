@@ -1,5 +1,6 @@
 // Return true if there any winning combination found i.e [x - x - x]
 export function checkForWinner(board, marker) {
+
 	const winningCombinations = [
 		[0, 1, 2], // Row
 		[3, 4, 5], // Row
@@ -18,3 +19,5 @@ export function checkForWinner(board, marker) {
 	}
 	return false;
 }
+
+

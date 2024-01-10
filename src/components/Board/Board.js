@@ -1,20 +1,26 @@
 import { useEffect, useState } from 'react';
+
 import Square from './Square';
 import { makeComputerMove } from '../../utils/helper';
 import ScoreDashboard from './ScoreDashboard';
 import StatusBar from './StatusBar';
 import { checkForWinner } from '../../utils/checkForWinner';
 import { checkForTie } from '../../utils/checkForTie';
+import { checkForEmpty } from '../../utils/checkForEmpty';
 
 import Popup from '../../ui/Popup';
+import { useGameState } from '../../context/GameStateProvider';
+import {
+	matchWinAction,
+	matchTieAction,
+} from '../../context/GameStateProvider';
 
 //  Represents the initial state of the board
 const initialBoardState = ['', '', '', '', '', '', '', '', ''];
 
-function Board({ humanTurn }) {
-	// Represent the current player's turn
-	// humanTurn = human Turn
-	const [turn, setTurn] = useState(humanTurn);
+function Board() {
+	const { currentTurn, humanSelectedOption, winner, matchStatus, dispatch } =
+		useGameState();
 
 	// Represents the overall state of the board, including occupied positions.
 	const [boardState, setBoardState] = useState(initialBoardState);
@@ -22,19 +28,31 @@ function Board({ humanTurn }) {
 	// Represent the index of box(tile) selected by user and pc
 	const [tileIndex, setTileIndex] = useState(null);
 
-	const [tie, setTie] = useState(false);
-
-	console.log(tie);
-	const [winner, setWinner] = useState('');
-
-	function handleTurn() {
-		setTurn((prevTurn) => (prevTurn === 'x' ? 'o' : 'x'));
-	}
-
 	function handleTileIndex(index) {
 		if (index === tileIndex) return;
 		setTileIndex(index);
 	}
+
+	function handleWin() {
+		// Dispatch win action
+		dispatch(matchWinAction(currentTurn, humanSelectedOption));
+	}
+
+	function handleTie() {
+		dispatch(matchTieAction());
+	}
+
+	// If match status is newRound this effect will run
+	useEffect(() => {
+		if (matchStatus !== 'newRound') return;
+		setBoardState((prevState) => prevState.map((state) => (state = '')));
+	}, [matchStatus]);
+
+	// If match status is newMatch this effect will run
+	useEffect(() => {
+		if (matchStatus !== 'newMatch') return;
+		setBoardState((prevState) => prevState.map((state) => (state = '')));
+	}, [matchStatus]);
 
 	// This effect run when tileIndex changes
 	// 1. When user click on tile
@@ -43,52 +61,53 @@ function Board({ humanTurn }) {
 		if (tileIndex === null) return;
 		setBoardState((boardState) =>
 			boardState.map((state, i) =>
-				tileIndex === i ? (boardState[tileIndex] = turn) : state
+				tileIndex === i ? (boardState[tileIndex] = currentTurn) : state
 			)
 		);
-	}, [tileIndex, turn]);
-
-	// After boardState changes , check for winning if true then set winner to curTurn
-	// If , not winning chances then  check for tie chances
-	// Else toggleTurn
-	useEffect(() => {
-		if (checkForWinner(boardState, turn)) setWinner(turn);
-		if (checkForTie(boardState)) setTie(true);
-		handleTurn();
 		return () => {
 			setTileIndex(null);
 		};
-	}, [boardState]);
+	}, [tileIndex]);
 
+	// After boardState changes , check for 1. Win 2. Tie
+	// Else toggleTurn
+	useEffect(
+		function () {
+			// If boardState is empty then return
+			if (checkForEmpty(boardState)) return;
+			if (checkForWinner(boardState, currentTurn)) return handleWin();
+			if (checkForTie(boardState)) return handleTie();
+			dispatch({ type: 'turn/toggle' });
+		},
+		[boardState]
+	);
+
+	// Make a computer move and set the tile index.
 	useEffect(() => {
-		if (turn === humanTurn) return;
+		if (currentTurn === humanSelectedOption) return;
 		setTimeout(() => {
-			const index = makeComputerMove(boardState, turn);
-			console.log(index);
+			const index = makeComputerMove(boardState, currentTurn);
 			setTileIndex(index);
 		}, 3000);
-	}, [turn, humanTurn]);
+	}, [currentTurn, humanSelectedOption]);
 
 	return (
 		<>
-			<StatusBar currentPlayer={turn} />
-
-			{!winner && !tie && (
+			<StatusBar />
+			{!winner && matchStatus !== 'tie' && (
 				<div className='board'>
 					{boardState.map((option, i) => (
 						<Square
 							key={i}
 							getCurrentBoxIndex={() => handleTileIndex(i)}
 							option={option}
-							isPcTurn={turn !== humanTurn}
-							winner={winner}
 						/>
 					))}
 				</div>
 			)}
 
-			{winner && <Popup type='winner' playerMarker={winner} />}
-			{tie && <Popup type='warning' />}
+			{winner && <Popup type='winner' />}
+			{matchStatus === 'tie' && <Popup type='warning' />}
 			<ScoreDashboard />
 		</>
 	);

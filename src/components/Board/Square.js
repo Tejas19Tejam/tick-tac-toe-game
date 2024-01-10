@@ -1,7 +1,11 @@
+import { useGameState } from '../../context/GameStateProvider';
 import PlayerIcon from '../../ui/PlayerIcon';
 
-function Square({ getCurrentBoxIndex, option, isPcTurn, winner }) {
+function Square({ getCurrentBoxIndex, option }) {
+	const { winner, currentTurn, humanSelectedOption } = useGameState();
+
 	const selectedTile = option !== '';
+	const isPcTurn = currentTurn !== humanSelectedOption;
 	const gameComplete = winner !== '';
 
 	if (selectedTile)

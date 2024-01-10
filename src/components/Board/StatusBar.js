@@ -2,11 +2,11 @@ import GameLogo from '../../ui/GameLogo';
 import TurnIndicator from './TurnIndicator';
 import RefreshButton from './RefreshButton';
 
-function StatusBar({ currentPlayer }) {
+function StatusBar() {
 	return (
 		<div className='game-info'>
 			<GameLogo />
-			<TurnIndicator currentPlayer={currentPlayer} />
+			<TurnIndicator />
 			<RefreshButton />
 		</div>
 	);
