@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import Square from './Square';
 import { makeComputerMove } from '../../utils/helper';
@@ -25,12 +25,16 @@ function Board() {
 	// Represents the overall state of the board, including occupied positions.
 	const [boardState, setBoardState] = useState(initialBoardState);
 
-	// Represent the index of box(tile) selected by user and pc
-	const [tileIndex, setTileIndex] = useState(null);
-
-	function handleTileIndex(index) {
-		if (index === tileIndex) return;
-		setTileIndex(index);
+	// tileIndex =  box(tile) selected by user and pc
+	// This handler run when tileIndex changes
+	// 1. When user click on tile
+	// 2. When computer select index.
+	function handleBoardState(tileIndex) {
+		setBoardState((boardState) =>
+			boardState.map((state, i) =>
+				tileIndex === i ? (boardState[tileIndex] = currentTurn) : state
+			)
+		);
 	}
 
 	function handleWin() {
@@ -54,23 +58,9 @@ function Board() {
 		setBoardState((prevState) => prevState.map((state) => (state = '')));
 	}, [matchStatus]);
 
-	// This effect run when tileIndex changes
-	// 1. When user click on tile
-	// 2. When computer select index.
-	useEffect(() => {
-		if (tileIndex === null) return;
-		setBoardState((boardState) =>
-			boardState.map((state, i) =>
-				tileIndex === i ? (boardState[tileIndex] = currentTurn) : state
-			)
-		);
-		return () => {
-			setTileIndex(null);
-		};
-	}, [tileIndex]);
-
 	// After boardState changes , check for 1. Win 2. Tie
 	// Else toggleTurn
+
 	useEffect(
 		function () {
 			// If boardState is empty then return
@@ -87,7 +77,7 @@ function Board() {
 		if (currentTurn === humanSelectedOption) return;
 		setTimeout(() => {
 			const index = makeComputerMove(boardState, currentTurn);
-			setTileIndex(index);
+			handleBoardState(index);
 		}, 3000);
 	}, [currentTurn, humanSelectedOption]);
 
@@ -99,7 +89,8 @@ function Board() {
 					{boardState.map((option, i) => (
 						<Square
 							key={i}
-							getCurrentBoxIndex={() => handleTileIndex(i)}
+							// getCurrentBoxIndex={() => handleTileIndex(i)}
+							getCurrentBoxIndex={() => handleBoardState(i)}
 							option={option}
 						/>
 					))}
